@@ -2,6 +2,11 @@
 #include <WiFi.h>
 #include "secrets_autogen.h"
 
+// initialize and start a server on port 80 - TCP
+WiFiServer server(80);
+WiFiClient client;
+String data = "Welcome client\n";
+String clientData = " ";
 
 void setup() {
 
@@ -19,8 +24,32 @@ void setup() {
   // print the successful connection and board IP address
   Serial.println("Connected!");
   Serial.println(WiFi.localIP());
+
+  // start server
+  server.begin();
 }
 
 void loop() {
-  // put your main code here, to run repeatedly:
+
+  // check if no client - assign newly connected client to client
+  if(!client || !client.connected()){
+    WiFiClient newClient = server.available();
+
+    if(newClient){
+      client = newClient;
+
+      Serial.println("Connected to client!");
+      Serial.println(client.remoteIP());
+
+      // send data variable to client
+      client.print(data);
+    } 
+  }
+
+  //if there is a client connected read the sent data on server
+   if(client.available() > 0){
+      clientData = client.readString();
+      client.readStringUntil('\n');
+      Serial.println(clientData);
+    }
 }
